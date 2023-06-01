@@ -1,0 +1,65 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+
+class ExpressionEvaluator {
+    public static void main(String[] args) {
+        try {
+            // Create a reader to read input from the console
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String expression;
+
+            // Read expressions until "end" is entered
+            while (!(expression = reader.readLine()).equals("end")) {
+                // URL-encode the expression
+                String encodedExpression = URLEncoder.encode(expression, "UTF-8");
+                // Construct the API URL with the encoded expression
+                String url = "https://api.mathjs.org/v4/?expr=" + encodedExpression;
+                // Send the HTTP request to the API and retrieve the result
+                String result = sendHttpRequest(url);
+                // Print the expression and its evaluated result
+                System.out.println(expression + " => " + result);
+            }
+
+            // Close the reader
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String sendHttpRequest(String url) throws IOException {
+        HttpURLConnection connection = null;
+        StringBuilder response = new StringBuilder();
+
+        try {
+            // Open a connection to the API URL
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod("GET");
+
+            // Get the response code from the API
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // Read the response from the API
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+            } else {
+                System.out.println("HTTP Request Failed. Response Code: " + responseCode);
+            }
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+
+        // Return the response as a string
+        return response.toString().trim();
+    }
+}
