@@ -1,0 +1,71 @@
+import java.util.*;
+
+class EventOutcomeGenerator1 {
+    private Map<Object, Integer> eventMap;
+
+    public EventOutcomeGenerator1(List<Map<Object, Integer>> inputMap) {
+        eventMap = new HashMap<>();
+
+        // Iterate over each outcome map in the input list
+        for (Map<Object, Integer> outcome : inputMap) {
+            // Iterate over each entry (outcome and probability) in the outcome map
+            for (Map.Entry<Object, Integer> entry : outcome.entrySet()) {
+                // Add the outcome and its corresponding probability to the event map
+                eventMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    public Map<Object, Integer> generateOutcomes(int numOccurrences) {
+        Map<Object, Integer> outcomeCounts = new HashMap<>();
+
+        // Generate the specified number of outcomes
+        for (int i = 0; i < numOccurrences; i++) {
+            Object outcome = selectOutcome();
+            // Update the occurrence count for the selected outcome
+            outcomeCounts.put(outcome, outcomeCounts.getOrDefault(outcome, 0) + 1);
+        }
+
+        return outcomeCounts;
+    }
+
+    private Object selectOutcome() {
+        // Calculate the total probability by summing all the probabilities in the event map
+        int totalProbability = eventMap.values().stream().mapToInt(Integer::intValue).sum();
+
+        // Generate a random value within the range of the total probability
+        int randomValue = new Random().nextInt(totalProbability);
+        int cumulativeProbability = 0;
+
+        // Iterate over each entry in the event map
+        for (Map.Entry<Object, Integer> entry : eventMap.entrySet()) {
+            cumulativeProbability += entry.getValue();
+
+            // Check if the random value falls within the cumulative probability range
+            if (randomValue < cumulativeProbability) {
+                // Return the outcome associated with the current entry
+                return entry.getKey();
+            }
+        }
+
+        return null; // No outcome selected
+    }
+
+    public static void main(String[] args) {
+        List<Map<Object, Integer>> inputMap = new ArrayList<>();
+        Map<Object, Integer> outcome1 = new HashMap<>();
+        outcome1.put("Head", 35);
+        inputMap.add(outcome1);
+        Map<Object, Integer> outcome2 = new HashMap<>();
+        outcome2.put("Tail", 65);
+        inputMap.add(outcome2);
+
+        EventOutcomeGenerator1 generator = new EventOutcomeGenerator1(inputMap);
+        Map<Object, Integer> outcomeCounts = generator.generateOutcomes(1000);
+
+        // Print the outcome counts
+        for (Map.Entry<Object, Integer> entry : outcomeCounts.entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue() + " occurrences");
+        }
+    }
+}
